@@ -27,7 +27,7 @@ asmlinkage long my_handler(unsigned int fd, unsigned int cmd, unsigned long arg)
 	unsigned long rand_num;
 	unsigned int port;
 	//printk("Before sys_ioctl, cmd=0x%x\n", cmd);
-	if(cmd == 0x44504) //IOCTL_PRIVCMD_HYPERCALL
+	if(cmd == 0x44504) //IOCTL_EVTCHN_NOTIFY
 	{
 		//Read original hypercall arg
 		if(copy_from_user(&evtchn, udata, sizeof(evtchn)))
@@ -38,7 +38,7 @@ asmlinkage long my_handler(unsigned int fd, unsigned int cmd, unsigned long arg)
 		port = evtchn.port;
 
 		//if(test_count == 10) jprobe_return();
-			
+
 		get_random_bytes(&rand_num, sizeof(unsigned long));
 		rand_num = rand_num % 100;
 		evtchn.port = rand_num;
