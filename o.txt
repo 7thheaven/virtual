@@ -1,0 +1,22 @@
+192.168.11.76 root 密码 secret
+xshell ssh root@192.168.11.76
+
+
+
+175远程登录——Administrator:admin123456？
+
+
+
+
+本地连接ip设置为：
+11:网速不限制，限制ip地址(有人下载的话会抢占带宽，所以有时会很慢)
+10：ip不限制，网速有限制
+
+如果是10的IP，访问192.168.11.76服务器得转ssh trans@219.217.243.39  192.168.10.241  密码 ftcltrans2011
+然后再 ssh root@192.168.11.76
+
+cloudstack
+192.168.10.200:8080/client
+admin
+password
+
