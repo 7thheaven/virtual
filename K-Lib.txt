@@ -1,0 +1,72 @@
+http://www.iamroot.org/lxr/http/ident?v=xen-4.1-x86-64-iamroot-2th;a=i386
+韩国的一个检索xen源码的网站，可以帮助内核编程。
+目前没有找到xenserver的这种网站。
+
+http://blog.csdn.net/zhangskd/article/details/9025121
+内核符号表
+
+cat /proc/kallsyms | grep xen_   // July 
+
+Kernel symbol table，内核符号表。
+
+Linux内核的符号表位于两个部分：
+
+静态的符号表，即内核映像vmlinuz的符号表（System.map）
+
+动态的符号表，即内核模块的符号表（/proc/kallsyms）
+
+ 
+
+符号标志
+
+T    External text
+
+t     Local text
+
+D    External initialized data
+
+d    Local initialized data
+
+B    External zeroed data
+
+b    Local zeroed data
+
+A    External absolute
+
+a    Local absolute
+
+U    External undefined
+
+G    External small initialized data
+
+g    Local small initialized data
+
+I    Init section
+
+S    External small zeroed data
+
+s    Local small zeroed data
+
+R    External read only
+
+r    Local read only
+
+C    Common
+
+E    Small common
+
+ 
+
+我们可以看到，大写标志都是全局的、可被外部引用的，而小写标志都是局部的、不能被外部引用的。
+
+可以用nm命令查看可执行文件的符号表（nm - list symbols from object files）。
+
+ 
+
+insmod使用公共内核符号表来解析模块中未定义的符号。公共内核符号表中包含了所有的全局函数和全局
+
+变量的地址。当模块被装入内核后，它所导出的任何内核符号都会变成内核符号表的一部分。
+
+EXPORT_SYMBOL(name); // 所有模块可见
+
+EXPORT_SYMBOL_GPL(nae); // 含有GPL许可证模块可见
