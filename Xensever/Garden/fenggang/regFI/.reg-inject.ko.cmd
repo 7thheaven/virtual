@@ -1,0 +1,1 @@
+cmd_/home/fenggang/regFI/reg-inject.ko := ld -r -m elf_i386 -T /usr/src/kernels/2.6.32.43-0.4.1.xs1.6.10.741.170752xen-i686/scripts/module-common.lds  -o /home/fenggang/regFI/reg-inject.ko /home/fenggang/regFI/reg-inject.o /home/fenggang/regFI/reg-inject.mod.o

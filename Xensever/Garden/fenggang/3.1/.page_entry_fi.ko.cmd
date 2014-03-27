@@ -1,0 +1,1 @@
+cmd_/home/fenggang/3.1/page_entry_fi.ko := ld -r -m elf_i386 -T /usr/src/kernels/2.6.32.43-0.4.1.xs1.6.10.741.170752xen-i686/scripts/module-common.lds  -o /home/fenggang/3.1/page_entry_fi.ko /home/fenggang/3.1/page_entry_fi.o /home/fenggang/3.1/page_entry_fi.mod.o
