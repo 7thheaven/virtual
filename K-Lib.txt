@@ -21,7 +21,7 @@ Linux内核的符号表位于两个部分：
 
 T    External text
 
-t     Local text
+t    Local text
 
 D    External initialized data
 
