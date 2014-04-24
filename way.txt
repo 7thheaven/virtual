@@ -1,1 +1,5 @@
-use xenserver DDK test mvmhyper.
+通过do_fork实现？
+关于do_fork
+http://blog.csdn.net/yunsongice/article/details/5508242
+
+研究一下ptrace，看是否有用？
