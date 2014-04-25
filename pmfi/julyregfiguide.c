@@ -14,7 +14,7 @@ int main(int argc, char **argv)
 	if(argc<argnum)
 	{
 		printf("Not enough args, turn to guide mode.\n");
-		printf("Select aim:\n0 do_fork\ninput:");
+		printf("Select aim:\n0 Reg FI\ninput:");
 		scanf("%d",&input);
 		memset(buff,'\0',sizeof(buff));
 		sprintf(buff,"echo %d > /proc/julyregfi/aim",input);
@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 		printf("Select fault:\n");
 		aim=input;
 		if(aim==0)
-			printf("0 ax\ninput:");
+			printf("1 ax\t2 bx\t4 cx\n8 dx\t16 si\t32 di\n64 bp\t128 ds\t256 es\n512 fs\t1024 gs\t2048 orig_ax\n4096 ip\t8192 cs\t16384 flags\n32768 sp\t65536 ss\ninput:");
 		scanf("%d",&input);
 		memset(buff,'\0',sizeof(buff));
 		sprintf(buff,"echo %d > /proc/julyregfi/fault",input);

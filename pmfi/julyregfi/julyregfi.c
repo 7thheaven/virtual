@@ -56,23 +56,109 @@ long my_do_fork(unsigned long clone_flags,unsigned long stack_start,struct pt_re
 	if(aim!=do_fork_id || signal==0) jprobe_return();
 	if(time>0) --time; else {signal=0;printk("Done.\n");jprobe_return();}
 	printk("Fortune: do_fork from %s fork_count %d\n",current->comm,++fork_count);
-	printk("Fortune: reg ax =0x%lx\n",regs->ax);
-	regs->ax=7;
-	regs->bx=7;
-	regs->cx=7;
-	regs->dx=7;
-	regs->si=7;
-	regs->di=7;
-	regs->bp=7;
-	regs->ds=7;
-	regs->es=7;
-	regs->fs=7;
-	regs->gs=7;
-	regs->ip=7;
-	regs->cs=7;
-	regs->sp=7;
-	regs->ss=7;
-	printk("Fortune: change reg ax to 0x%lx\n",regs->ax);
+	getrando(32);
+    if(fault & 1)
+    {
+        printk("Fortune: change reg ax from 0x%lx to ",regs->ax);
+        regs->ax ^= (1 << rando);
+        printk("0x%lx\n",regs->ax);
+    }
+    if(fault & 2)
+    {
+        printk("Fortune: change reg bx from 0x%lx to ",regs->bx);
+        regs->bx ^= (1 << rando);
+        printk("0x%lx\n",regs->bx);
+    }
+    if(fault & 4)
+    {
+        printk("Fortune: change reg cx from 0x%lx to ",regs->cx);
+        regs->cx ^= (1 << rando);
+        printk("0x%lx\n",regs->cx);
+    }
+    if(fault & 8)
+    {
+        printk("Fortune: change reg dx from 0x%lx to ",regs->dx);
+        regs->dx ^= (1 << rando);
+        printk("0x%lx\n",regs->dx);
+    }
+    if(fault & 16)
+    {
+        printk("Fortune: change reg si from 0x%lx to ",regs->si);
+        regs->si ^= (1 << rando);
+        printk("0x%lx\n",regs->si);
+    }
+	if(fault & 32)
+    {
+        printk("Fortune: change reg di from 0x%lx to ",regs->di);
+        regs->di ^= (1 << rando);
+        printk("0x%lx\n",regs->di);
+    }
+    if(fault & 64)
+    {
+        printk("Fortune: change reg bp from 0x%lx to ",regs->bp);
+        regs->bp ^= (1 << rando);
+        printk("0x%lx\n",regs->bp);
+    }
+    if(fault & 128)
+    {
+        printk("Fortune: change reg ds from 0x%lx to ",regs->ds);
+        regs->ds ^= (1 << rando);
+        printk("0x%lx\n",regs->ds);
+    }
+    if(fault & 256)
+    {
+        printk("Fortune: change reg es from 0x%lx to ",regs->es);
+        regs->es ^= (1 << rando);
+        printk("0x%lx\n",regs->es);
+    }
+    if(fault & 512)
+    {
+        printk("Fortune: change reg fs from 0x%lx to ",regs->fs);
+        regs->fs ^= (1 << rando);
+        printk("0x%lx\n",regs->fs);
+    }
+    if(fault & 1024)
+    {
+        printk("Fortune: change reg gs from 0x%lx to ",regs->gs);
+        regs->gs ^= (1 << rando);
+        printk("0x%lx\n",regs->gs);
+    }
+    if(fault & 2048)
+    {
+        printk("Fortune: change reg orig_ax from 0x%lx to ",regs->orig_ax);
+        regs->orig_ax ^= (1 << rando);
+        printk("0x%lx\n",regs->orig_ax);
+    }
+	if(fault & 4096)
+    {
+        printk("Fortune: change reg ip from 0x%lx to ",regs->ip);
+        regs->ip ^= (1 << rando);
+        printk("0x%lx\n",regs->ip);
+    }
+    if(fault & 8192)
+    {
+        printk("Fortune: change reg cs from 0x%lx to ",regs->cs);
+        regs->cs ^= (1 << rando);
+        printk("0x%lx\n",regs->cs);
+    }
+    if(fault & 16384)
+    {
+        printk("Fortune: change reg flags from 0x%lx to ",regs->flags);
+        regs->flags ^= (1 << rando);
+        printk("0x%lx\n",regs->flags);
+    }
+    if(fault & 32768)
+    {
+        printk("Fortune: change reg sp from 0x%lx to ",regs->sp);
+        regs->sp ^= (1 << rando);
+        printk("0x%lx\n",regs->sp);
+    }
+    if(fault & 65536)
+    {
+        printk("Fortune: change reg ss from 0x%lx to ",regs->ss);
+        regs->ss ^= (1 << rando);
+        printk("0x%lx\n",regs->ss);
+    }
 	jprobe_return();
 	return 0;
 }
@@ -182,7 +268,7 @@ static struct jprobe jphyper[jpnum];
 static int julyregfi_init(void)
 {
 	int ret;
-	printk("mvmhyper init.\n");
+	printk("julyregfi init.\n");
 	if(useit[do_fork_id])
     {
         jphyper[do_fork_id].entry = (kprobe_opcode_t *) my_do_fork;
