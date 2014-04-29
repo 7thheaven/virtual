@@ -14,7 +14,7 @@ int main(int argc, char **argv)
 	if(argc<argnum)
 	{
 		printf("Not enough args, turn to guide mode.\n");
-		printf("Select aim:\n0 Reg FI\ninput:");
+		printf("Select aim:\n1 Fork Reg_FI\n2 Scan Reg_FI\n3 Both\ninput:");
 		scanf("%d",&input);
 		memset(buff,'\0',sizeof(buff));
 		sprintf(buff,"echo %d > /proc/julyregfi/aim",input);

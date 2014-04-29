@@ -1,3 +1,7 @@
+http://blog.csdn.net/hongchangfirst/article/details/7076225
+http://blog.csdn.net/hongchangfirst/article/details/7075026
+linux的进程结构体相关
+
 http://www.iamroot.org/lxr/http/ident?v=xen-4.1-x86-64-iamroot-2th;a=i386
 韩国的一个检索xen源码的网站，可以帮助内核编程。
 目前没有找到xenserver的这种网站。
