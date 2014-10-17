@@ -9,23 +9,17 @@ password='secret'
 stdin=''
 stdout=''
 stderr=''
+res=''
 success=False
 
 paramiko.util.log_to_file('paramiko.log')
 s=paramiko.SSHClient()
 
-def connectssh():
-    global s,hostname,username,password
-    #s.load_system_host_keys()
-    s.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    s.connect(hostname = hostname,username=username, password=password)
-
 def execshow(cmd):
-    global s,stdin,stdout,stderr,success
+    global s,stdin,stdout,stderr,success,res
     success=False
     print cmd
     stdin,stdout,stderr=s.exec_command(cmd)
-    res=''
     #read means take away,need to save
     stderrstr=stderr.read()
     stdoutstr=stdout.read()
@@ -33,9 +27,9 @@ def execshow(cmd):
         res+='stderr\n'+stderrstr
         print res
     else:
-        #print "stdout\n"+stdoutstr
+        print "stdout\n"+stdoutstr
         success=True
-        res=stdoutstr
+        res+=stdoutstr
     restext.SetValue(res)
 
 def cleanmesg():
@@ -66,7 +60,6 @@ def waitdone():
                 break
 
 def simpletest():
-    connectssh()
     cleanmesg()
     execshow('insmod /home/jphyper/jphyper.ko')
     execshow('dmesg -c')
@@ -76,7 +69,6 @@ def simpletest():
     execshow('dmesg -c')
     execshow('rmmod jphyper')
     execshow('dmesg -c')
-    s.close()
     print 'All done.'
 
 def cancel(event):
@@ -86,15 +78,23 @@ def bye(event):
     s.close()
     face.Close()
 
-def connect(event):
-    global s,hostname,username,password
+def connect():
+    global s,hostname,username,password,res
     #s.load_system_host_keys()
     hostname=iptext.GetValue()
     username=unametext.GetValue()
     password=passwtext.GetValue()
     s.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    res+='Connecting to '+hostname
+    restext.SetValue(res)
     s.connect(hostname = hostname,username=username, password=password)
-    execshow('ls')
+    res+='Begin to Test'+hostname
+    restext.SetValue(res)
+    simpletest()
+
+def connectasy(event):
+    task=threading.Thread(target=connect)
+    task.start()
 
 sfi=wx.App()
 face=wx.Frame(None,title="Virtual Fault Inject Platform",size=(800,600))
@@ -115,7 +115,7 @@ restext=wx.TextCtrl(bkg,style=wx.TE_MULTILINE|wx.HSCROLL)
 
 #bottom button--UI
 conbutton=wx.Button(bkg,label='Connect')
-conbutton.Bind(wx.EVT_BUTTON,connect)
+conbutton.Bind(wx.EVT_BUTTON,connectasy)
 cancelbutton=wx.Button(bkg,label='Cancel')
 cancelbutton.Bind(wx.EVT_BUTTON,cancel)
 exitbutton=wx.Button(bkg,label='Exit')
