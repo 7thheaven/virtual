@@ -96,22 +96,39 @@ def connectasy(event):
     task=threading.Thread(target=connect)
     task.start()
 
+def modelshow(event):
+    modelface.Show()
+
+def modelexit(event):
+    modelface.Hide()
+
+def modelnext(event):
+    pass
+
 sfi=wx.App()
 face=wx.Frame(None,title="Virtual Fault Inject Platform",size=(800,600))
 bkg=wx.Panel(face)
 #ip,username,password--UI
+sshlabel=wx.StaticText(bkg,wx.NewId(),'Connection',(0,0),(0,0),wx.ALIGN_CENTER)
 iplabel=wx.StaticText(bkg,wx.NewId(),'IP :')
 unamelabel=wx.StaticText(bkg,wx.NewId(),'UserName :')
 passwlabel=wx.StaticText(bkg,wx.NewId(),'Password :')
 iptext=wx.TextCtrl(bkg)
 unametext=wx.TextCtrl(bkg)
-passwtext=wx.TextCtrl(bkg)
+passwtext=wx.TextCtrl(bkg,style=wx.TE_PASSWORD)
 iptext.SetValue('192.168.13.1')
 unametext.SetValue('root')
 passwtext.SetValue('secret')
 
+#model select -- UI
+modelbutton=wx.Button(bkg,label='Select Fault-Model')
+modelbutton.Bind(wx.EVT_BUTTON,modelshow)
+#statelabel=wx.StaticText(bkg,wx.NewId(),'State',(0,0),(0,0),wx.ALIGN_CENTER)
+statetext=wx.TextCtrl(bkg,style=wx.TE_MULTILINE|wx.HSCROLL|wx.TE_READONLY)
+
+#result show
+reslabel=wx.StaticText(bkg,wx.NewId(),'Log',(0,0),(0,0),wx.ALIGN_CENTER)
 restext=wx.TextCtrl(bkg,style=wx.TE_MULTILINE|wx.HSCROLL)
-#switchfriend=wx.ListBox(bkg,-1,(0,0),(80,45),friendlist,wx.LB_SINGLE)
 
 #bottom button--UI
 conbutton=wx.Button(bkg,label='Connect')
@@ -132,9 +149,16 @@ hbox2.Add(unametext,proportion=2,flag=wx.EXPAND)
 hbox3.Add(passwlabel,proportion=1,flag=wx.EXPAND)
 hbox3.Add(passwtext,proportion=2,flag=wx.EXPAND)
 vbox1=wx.BoxSizer(wx.VERTICAL)
+vbox1.Add(sshlabel,proportion=1,flag=wx.EXPAND|wx.ALL,border=5)
 vbox1.Add(hbox1,proportion=1,flag=wx.EXPAND|wx.ALL,border=5)
 vbox1.Add(hbox2,proportion=1,flag=wx.EXPAND|wx.ALL,border=5)
 vbox1.Add(hbox3,proportion=1,flag=wx.EXPAND|wx.ALL,border=5)
+
+#model select -- layout
+hbox5=wx.BoxSizer()
+hbox5.Add(modelbutton,proportion=2,flag=wx.EXPAND,border=5)
+#hbox5.Add(statelabel,proportion=1,flag=wx.EXPAND,border=3)
+hbox5.Add(statetext,proportion=3,flag=wx.EXPAND,border=5)
 
 #bottom button--layout
 hbox4=wx.BoxSizer()
@@ -144,9 +168,32 @@ hbox4.Add(exitbutton,proportion=1,flag=wx.EXPAND,border=5)
 
 #All
 vbox=wx.BoxSizer(wx.VERTICAL)
-vbox.Add(vbox1,proportion=3,flag=wx.EXPAND|wx.ALL,border=5)
+vbox.Add(vbox1,proportion=2,flag=wx.EXPAND|wx.ALL,border=5)
+vbox.Add(hbox5,proportion=1,flag=wx.EXPAND|wx.ALL,border=5)
+vbox.Add(reslabel,proportion=1,flag=wx.EXPAND|wx.ALL,border=5)
 vbox.Add(restext,proportion=6,flag=wx.EXPAND|wx.LEFT|wx.BOTTOM|wx.RIGHT,border=5)
 vbox.Add(hbox4,proportion=1,flag=wx.EXPAND)
 bkg.SetSizer(vbox)
+
+#model select frame
+modelface=wx.Frame(face,title="Fault-Model Selection",size=(400,300))
+modelbkg=wx.Panel(modelface)
+modeltext=wx.StaticText(modelbkg,wx.NewId(),'Aim',(0,0),(0,0),wx.ALIGN_CENTER)
+modelswitch=wx.ListBox(modelbkg,-1,(0,0),(0,0),('ioctl_privcmd_hypercall','xen_pgd_pin','xen_l2_entry_update','remap_pfn_range','xen_l3_entry_update','rw_block_io'),wx.LB_SINGLE)
+modelswitch.SetSelection(0,True)
+modelnextbutton=wx.Button(modelbkg,label='Next')
+modelnextbutton.Bind(wx.EVT_BUTTON,modelnext)
+modelexitbutton=wx.Button(modelbkg,label='Exit')
+modelexitbutton.Bind(wx.EVT_BUTTON,modelexit)
+hboxmodel=wx.BoxSizer()
+hboxmodel.Add(modelnextbutton,proportion=1,flag=wx.EXPAND|wx.ALL,border=2)
+hboxmodel.Add(modelexitbutton,proportion=1,flag=wx.EXPAND|wx.ALL,border=2)
+vboxmodel=wx.BoxSizer(wx.VERTICAL)
+vboxmodel.Add(modeltext,proportion=1,flag=wx.EXPAND|wx.ALL,border=2)
+vboxmodel.Add(modelswitch,proportion=8,flag=wx.EXPAND|wx.ALL,border=5)
+vboxmodel.Add(hboxmodel,proportion=1,flag=wx.EXPAND|wx.ALL,border=5)
+modelbkg.SetSizer(vboxmodel)
+
+
 face.Show()
 sfi.MainLoop()
