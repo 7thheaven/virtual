@@ -12,9 +12,15 @@ stderr=''
 res=''
 success=False
 fitoolsdir='./fitools'
+fitoolslist=''
 fitoolscmds={}
 cmdlist=['initcmd','guidepath','runningcmd','donecmd']
+statelabel=''
+cpulabel=''
+memorylabel=''
 living=True
+fitoolchoice=''
+argstext=''
 
 paramiko.util.log_to_file('paramiko.log')
 s=paramiko.SSHClient()
@@ -46,16 +52,12 @@ def cleanmesg():
     else:
         success=True
 
-def waitdone(fitoolname):
-    global s,stdin,stdout,stderr
+def waitdone():
+    global s,stdin,stdout,stderr,success
     success=False
-    if fitoolname=='cpufi':
-        path='julyregfi'
-    elif fitoolname=='xenfi':
-        path='jphyper'
     while not success:
         time.sleep(1)
-        stdin,stdout,stderr=s.exec_command('cat /proc/'+path+'/signal')
+        stdin,stdout,stderr=s.exec_command('cat /proc/jphyper/signal')
         stderrstr=stderr.read()
         stdoutstr=stdout.read()
         if stderrstr:
@@ -97,8 +99,6 @@ def connect():
     res+='Connecting to '+hostname+'\n'
     restext.SetValue(res)
     s.connect(hostname=hostname,username=username, password=password)
-    res+='Connected.\n'
-    restext.SetValue(res)
     refreshstatusasy()
 #res+='Begin to Test'+hostname+'\n'
 #restext.SetValue(res)
@@ -182,10 +182,8 @@ def refreshstatus():
         else:
             setconnect(True)
             success=True
-            cpuuse=stdoutstr.split()[0]
-            if float(cpuuse)>100:
-                cpuuse='100'
-            cpulabel.SetLabel('CPU: '+cpuuse+'%')
+            cpulabel.SetLabel('CPU: '+stdoutstr.split()[0]+'%')
+            print stdoutstr
         time.sleep(1)
 
 
@@ -204,7 +202,7 @@ def fitest():
     execshow(fitoolscmds[fitool]['guidepath'][0]+' '+args)
     for cmd in fitoolscmds[fitool]['runningcmd']:
         execshow(cmd)
-    waitdone(fitool)
+    waitdone()
     for cmd in fitoolscmds[fitool]['donecmd']:
         execshow(cmd)
     print 'All done.'
@@ -212,48 +210,6 @@ def fitest():
 def fitestasy(event):
     task=threading.Thread(target=fitest)
     task.start()
-
-def modelshow(event):
-    global fitoolslist,fitoolchoice
-    fitool=fitoolslist[fitoolchoice.GetSelection()]
-    if fitool=='xenfi':
-        xenfiface.Show()
-    elif fitool=='cpufi':
-        cpufiface.Show()
-
-def modelexit(event):
-    global fitoolslist,fitoolchoice
-    fitool=fitoolslist[fitoolchoice.GetSelection()]
-    if fitool=='xenfi':
-        xenfiface.Hide()
-    elif fitool=='cpufi':
-        cpufiface.Hide()
-
-def xenfiselect(event):
-    global xenfiaimchoice,xenfifaultchoice,xenfitimetext,xenfiidtext,argstext
-    aim=xenfiaimchoice.GetSelection()
-    fault=xenfifaultchoice.GetSelection()-1
-    time=xenfitimetext.GetValue()
-    id=xenfiidtext.GetValue()
-    argstext.SetValue(str(aim)+' '+str(fault)+' '+time+' '+id)
-    modelexit(event)
-
-def xenfiaimchange(event):
-    global xenfiaimchoice,xenfifaultchoice,xenfifault
-    xenfifaultchoice.Set(xenfifault[xenfiaimchoice.GetSelection()])
-    xenfifaultchoice.SetSelection(0)
-
-def cpufiselect(event):
-    global cpufiaimchoice,cpufifaultbox,cpufitimetext,argstext,cpufifault
-    aim=cpufiaimchoice.GetSelection()
-    l=len(cpufifault)
-    fault=0
-    for i in range(0,l):
-        if cpufifaultbox.IsChecked(i):
-            fault^=1<<i
-    time=cpufitimetext.GetValue()
-    argstext.SetValue(str(aim)+' '+str(fault)+' '+time)
-    modelexit(event)
 
 sfi=wx.App()
 face=wx.Frame(None,title="Virtual Fault Inject Platform",size=(800,600))
@@ -283,10 +239,9 @@ fitoolsinit()
 fitoollabel=wx.StaticText(bkg,wx.NewId(),'FI_Tool:',(0,0),(0,0),wx.ALIGN_CENTER)
 fitoolchoice=wx.Choice(bkg,wx.NewId(),(0,0),choices=fitoolslist)
 fitoolchoice.SetSelection(0)
-modelbutton=wx.Button(bkg,label='Select Fault-Model')
-modelbutton.Bind(wx.EVT_BUTTON,modelshow)
 argslabel=wx.StaticText(bkg,wx.NewId(),'args:',(0,0),(0,0),wx.ALIGN_CENTER)
-argstext=wx.TextCtrl(bkg,style=wx.TE_READONLY)
+argstext=wx.TextCtrl(bkg)
+#statetext=wx.TextCtrl(bkg,style=wx.TE_MULTILINE|wx.HSCROLL|wx.TE_READONLY)
 
 #result show
 reslabel=wx.StaticText(bkg,wx.NewId(),'Log',(0,0),(0,0),wx.ALIGN_CENTER)
@@ -328,10 +283,9 @@ vbox1.Add(hbox3,proportion=1,flag=wx.EXPAND|wx.ALL,border=5)
 #fitools select -- layout
 hbox5=wx.BoxSizer()
 hbox5.Add(fitoollabel,proportion=1,flag=wx.EXPAND,border=1)
-hbox5.Add(fitoolchoice,proportion=4,flag=wx.EXPAND,border=5)
-hbox5.Add(modelbutton,proportion=4,flag=wx.EXPAND,border=5)
+hbox5.Add(fitoolchoice,proportion=3,flag=wx.EXPAND,border=5)
 hbox5.Add(argslabel,proportion=1,flag=wx.EXPAND,border=1)
-hbox5.Add(argstext,proportion=4,flag=wx.EXPAND,border=5)
+hbox5.Add(argstext,proportion=3,flag=wx.EXPAND,border=5)
 
 #bottom button--layout
 hbox4=wx.BoxSizer()
@@ -351,86 +305,6 @@ vbox.Add(reslabel,proportion=1,flag=wx.EXPAND|wx.ALL,border=5)
 vbox.Add(restext,proportion=7,flag=wx.EXPAND|wx.LEFT|wx.BOTTOM|wx.RIGHT,border=5)
 vbox.Add(hbox4,proportion=1,flag=wx.EXPAND)
 bkg.SetSizer(vbox)
-
-#model select frame--xenfi
-xenfiaim=('ioctl_privcmd_hypercall','xen_pgd_pin','xen_l2_entry_update','remap_pfn_range','xen_l3_entry_update','rw_block_io')
-xenfifault=(('none','cmd','mfn','linear_addr'),('none','cmd','mfn'),('none','ptr_address','ptr','val'),('none','pgd','vm_flags'),('none','ptr_address','ptr','val'),('none','id','nr_pages','nr_segments'))
-#cpuaim=('Fork Reg_FI','Scan Reg_FI','Both')
-xenfiface=wx.Frame(face,title="Fault-Model Selection",size=(400,300))
-xenfibkg=wx.Panel(xenfiface)
-xenfiaimlabel=wx.StaticText(xenfibkg,wx.NewId(),'Aim:',(0,0),(0,0),wx.ALIGN_CENTER)
-xenfiaimchoice=wx.Choice(xenfibkg,wx.NewId(),(0,0),choices=xenfiaim)
-xenfiaimchoice.SetSelection(0)
-xenfiaimchoice.Bind(wx.EVT_CHOICE,xenfiaimchange)
-xenfifaultlabel=wx.StaticText(xenfibkg,wx.NewId(),'Fault:',(0,0),(0,0),wx.ALIGN_CENTER)
-xenfifaultchoice=wx.Choice(xenfibkg,wx.NewId(),(0,0),choices=xenfifault[0])
-xenfifaultchoice.SetSelection(0)
-xenfitimelabel=wx.StaticText(xenfibkg,wx.NewId(),'Time:',(0,0),(0,0),wx.ALIGN_CENTER)
-xenfitimetext=wx.TextCtrl(xenfibkg)
-xenfiidlabel=wx.StaticText(xenfibkg,wx.NewId(),'Id:',(0,0),(0,0),wx.ALIGN_CENTER)
-xenfiidtext=wx.TextCtrl(xenfibkg)
-hboxxenfiaim=wx.BoxSizer()
-hboxxenfiaim.Add(xenfiaimlabel,proportion=1,flag=wx.EXPAND|wx.ALL,border=2)
-hboxxenfiaim.Add(xenfiaimchoice,proportion=4,flag=wx.EXPAND|wx.ALL,border=2)
-hboxxenfifault=wx.BoxSizer()
-hboxxenfifault.Add(xenfifaultlabel,proportion=1,flag=wx.EXPAND|wx.ALL,border=2)
-hboxxenfifault.Add(xenfifaultchoice,proportion=4,flag=wx.EXPAND|wx.ALL,border=2)
-hboxxenfitime=wx.BoxSizer()
-hboxxenfitime.Add(xenfitimelabel,proportion=1,flag=wx.EXPAND|wx.ALL,border=2)
-hboxxenfitime.Add(xenfitimetext,proportion=4,flag=wx.EXPAND|wx.ALL,border=2)
-hboxxenfiid=wx.BoxSizer()
-hboxxenfiid.Add(xenfiidlabel,proportion=1,flag=wx.EXPAND|wx.ALL,border=2)
-hboxxenfiid.Add(xenfiidtext,proportion=4,flag=wx.EXPAND|wx.ALL,border=2)
-xenfiselectbutton=wx.Button(xenfibkg,label='Select')
-xenfiselectbutton.Bind(wx.EVT_BUTTON,xenfiselect)
-xenfiexitbutton=wx.Button(xenfibkg,label='Exit')
-xenfiexitbutton.Bind(wx.EVT_BUTTON,modelexit)
-hboxxenfi=wx.BoxSizer()
-hboxxenfi.Add(xenfiselectbutton,proportion=1,flag=wx.EXPAND|wx.ALL,border=2)
-hboxxenfi.Add(xenfiexitbutton,proportion=1,flag=wx.EXPAND|wx.ALL,border=2)
-vboxxenfi=wx.BoxSizer(wx.VERTICAL)
-vboxxenfi.Add(hboxxenfiaim,proportion=1,flag=wx.EXPAND|wx.ALL,border=5)
-vboxxenfi.Add(hboxxenfifault,proportion=1,flag=wx.EXPAND|wx.ALL,border=5)
-vboxxenfi.Add(hboxxenfitime,proportion=1,flag=wx.EXPAND|wx.ALL,border=5)
-vboxxenfi.Add(hboxxenfiid,proportion=1,flag=wx.EXPAND|wx.ALL,border=5)
-vboxxenfi.Add(hboxxenfi,proportion=1,flag=wx.EXPAND|wx.ALL,border=5)
-xenfibkg.SetSizer(vboxxenfi)
-
-#model select frame--cpufi
-cpufiaim=('Fork Reg_FI','Scan Reg_FI','Both')
-cpufifault=('ax','bx','cx','dx','si','di','bp','ds','es','fs','gs','orig_ax','ip','cs','flags','sp','ss')
-cpufiface=wx.Frame(face,title="Fault-Model Selection",size=(400,300))
-cpufibkg=wx.Panel(cpufiface)
-cpufiaimlabel=wx.StaticText(cpufibkg,wx.NewId(),'Aim:',(0,0),(0,0),wx.ALIGN_CENTER)
-cpufiaimchoice=wx.Choice(cpufibkg,wx.NewId(),(0,0),choices=cpufiaim)
-cpufiaimchoice.SetSelection(2)
-cpufifaultlabel=wx.StaticText(cpufibkg,wx.NewId(),'Fault:',(0,0),(0,0),wx.ALIGN_CENTER)
-cpufifaultbox=wx.CheckListBox(cpufibkg,-1,(0,0),(0,0),cpufifault)
-cpufifaultbox.Check(2,True)
-cpufitimelabel=wx.StaticText(cpufibkg,wx.NewId(),'Time:',(0,0),(0,0),wx.ALIGN_CENTER)
-cpufitimetext=wx.TextCtrl(cpufibkg)
-hboxcpufiaim=wx.BoxSizer()
-hboxcpufiaim.Add(cpufiaimlabel,proportion=1,flag=wx.EXPAND|wx.ALL,border=2)
-hboxcpufiaim.Add(cpufiaimchoice,proportion=4,flag=wx.EXPAND|wx.ALL,border=2)
-hboxcpufifault=wx.BoxSizer()
-hboxcpufifault.Add(cpufifaultlabel,proportion=1,flag=wx.EXPAND|wx.ALL,border=2)
-hboxcpufifault.Add(cpufifaultbox,proportion=4,flag=wx.EXPAND|wx.ALL,border=2)
-hboxcpufitime=wx.BoxSizer()
-hboxcpufitime.Add(cpufitimelabel,proportion=1,flag=wx.EXPAND|wx.ALL,border=2)
-hboxcpufitime.Add(cpufitimetext,proportion=4,flag=wx.EXPAND|wx.ALL,border=2)
-cpufiselectbutton=wx.Button(cpufibkg,label='Select')
-cpufiselectbutton.Bind(wx.EVT_BUTTON,cpufiselect)
-cpufiexitbutton=wx.Button(cpufibkg,label='Exit')
-cpufiexitbutton.Bind(wx.EVT_BUTTON,modelexit)
-hboxcpufi=wx.BoxSizer()
-hboxcpufi.Add(cpufiselectbutton,proportion=1,flag=wx.EXPAND|wx.ALL,border=2)
-hboxcpufi.Add(cpufiexitbutton,proportion=1,flag=wx.EXPAND|wx.ALL,border=2)
-vboxcpufi=wx.BoxSizer(wx.VERTICAL)
-vboxcpufi.Add(hboxcpufiaim,proportion=1,flag=wx.EXPAND|wx.ALL,border=5)
-vboxcpufi.Add(hboxcpufifault,proportion=4,flag=wx.EXPAND|wx.ALL,border=5)
-vboxcpufi.Add(hboxcpufitime,proportion=1,flag=wx.EXPAND|wx.ALL,border=5)
-vboxcpufi.Add(hboxcpufi,proportion=1,flag=wx.EXPAND|wx.ALL,border=5)
-cpufibkg.SetSizer(vboxcpufi)
 
 face.Show()
 sfi.MainLoop()
